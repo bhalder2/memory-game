@@ -1,6 +1,6 @@
 package memory;
 
-class Player {
+class Player implements Comparable<Player> {
 
     /**
      *  The number of non-matching pairs turned over,
@@ -43,5 +43,9 @@ class Player {
 
     int getPlayerNumber() {
         return playerNumber;
+    }
+
+    public int compareTo(Player o) {
+        return o.getScore() - this.matches;
     }
 }
