@@ -13,20 +13,15 @@ import java.util.regex.Pattern;
 public class Memory {
 
     /** The maximum number of cards on the board. */
-    private static final int BOARD_SIZE = 25;
+    private static final int BOARD_SIZE = 36;
 
     /**
      *  Main driver method.
      *  @param args not used
      */
     public static void main(String[] args) {
-        // Ask number of players
-        // Initialize Board with cards
-        // while board still has unmatched cards
-        // ask player to input two locations
-        // flip cards
 
-        System.out.println("Enter number of players: ");
+        System.out.print("Enter number of players: ");
 
         Scanner in = new Scanner(System.in);
         int numPlayers = in.nextInt();
@@ -47,9 +42,9 @@ public class Memory {
             for (Player player : players) {
                 // Repeat until user enters valid coordinates
                 do {
-                    System.out.println("Enter two coordinates: ");
-                    coord1 = in.next(Pattern.compile("[A-E][1-5]"));
-                    coord2 = in.next(Pattern.compile("[A-E][1-5]"));
+                    System.out.print("Enter two coordinates: ");
+                    coord1 = in.next(Pattern.compile("[A-F][1-6]"));
+                    coord2 = in.next(Pattern.compile("[A-F][1-6]"));
                 } while (!validCoordinates(coord1, coord2));
 
                 // If the cards are a match, increment the player's score
@@ -74,6 +69,7 @@ public class Memory {
             System.out.println("Player " + p.getPlayerNumber() + "\t" + p.getScore());
             count++;
         }
+
 
     }
 
