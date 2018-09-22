@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  *  Maintains the current state of the board using a hash table of
@@ -18,7 +20,7 @@ import java.util.Set;
  */
 class Board {
 
-    private class Card {
+    private static class Card {
 
         private String symbol;
 
@@ -30,6 +32,19 @@ class Board {
         public String toString() {
             return symbol;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Card card = (Card) o;
+            return Objects.equals(symbol, card.symbol);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(symbol);
+        }
     }
 
     /** List of all the cards in the game. */
@@ -38,22 +53,30 @@ class Board {
     /** Set containing the cards that have yet to be matched. */
     private static Set<Card> unmatched;
 
+    /** The rows of the board. */
     private static int rows;
 
+    /** The columns of the board. */
     private static int cols;
 
-    Board(int numRows, int numCols) {
-        rows = numRows;
-        cols = numCols;
+    /**
+     *  Initializes the board with r rows and c columns.
+     *  @param r the # rows
+     *  @param c the # columns
+     */
+    static void setUp(int r, int c) {
+        rows = r;
+        cols = c;
 
-        cards = new ArrayList<Card>(rows * cols);
-        unmatched = new HashSet<Card>(rows * cols);
+        cards = new ArrayList<>(rows * cols);
+        unmatched = new HashSet<>(rows * cols);
 
+        // Generate cards
         for (int i = 0; i < (rows * cols) / 2; i++) {
             String symbol;
 
-            // Generate a random symbol, if the set already contains that
-            // card, generate a new one until it finds a symbol not
+            // Generate a random symbol. If the set already contains a card with
+            // that symbol, generate a new one & repeat until it finds a symbol not
             // in the set
             do {
                 symbol = randomEmoji();
@@ -72,11 +95,24 @@ class Board {
         Collections.shuffle(cards);
     }
 
+    /**
+     *  Determines if board has any unmatched cards.
+     *  @return true if board has cards yet to be matched, false otherwise
+     */
     static boolean hasUnmatched() {
         return !unmatched.isEmpty();
     }
 
+    /**
+     *  Determines whether two given coordinates contain matching cards.
+     *  @param coord1 the first coordinate
+     *  @param coord2 the second coordinate
+     *  @return true if the coordinates contain matching cards, false otherwise
+     */
     static boolean isMatch(String coord1, String coord2) {
+        if (coord1 == null || coord2 == null) {
+            return false;
+        }
         int index1 = coordToIndex(coord1);
         int index2 = coordToIndex(coord2);
 
@@ -91,28 +127,131 @@ class Board {
      *  @return true if both of the cards are yet to be matched
      */
     static boolean validCoordinates(String coord1, String coord2) {
+        // Get the letter of the last valid column
+        String lastCol = Character.toString((char) ('A' + (cols - 1)));
+
+        // The expected pattern of the input
+        // First character should be between A and the last column
+        // Second character should be between 1 and the last row
+        String expected = "[A-" + lastCol + "][1-" + rows + "]";
+
+        // Check if the coordinates entered match the expected input
+        if (!coord1.matches(expected) || !coord2.matches(expected)) {
+            return false;
+        }
+
+        if (coord1.equals(coord2)) {
+            return false;
+        }
+
         Card one = cards.get(coordToIndex(coord1));
         Card two = cards.get(coordToIndex(coord2));
 
         return unmatched.contains(one) && unmatched.contains(two);
     }
 
-    static void print() {
-        for (Card card : cards) {
-            System.out.print(card);
+    /**
+     *  Prints the board to stdout, flipping the two cards given
+     *  for 2 seconds, then re-printing with cards face-down (if
+     *  they weren't matching).
+     *  @param coord1 the coordinate of the first card
+     *  @param coord2 the coordinate of the second card
+     */
+    static void print(String coord1, String coord2) {
+        System.out.print("\n\t\t");
+
+        // Prints the column headers
+        for (int i = 0; i < cols; i++) {
+            System.out.print((char) ('A' + i) + "\t");
         }
-        System.out.println();
+
+        // Declarations here to use in the for-loop
+        boolean match = Board.isMatch(coord1, coord2); // if the cards are a match
+        int index1 = coordToIndex(coord1);
+        int index2 = coordToIndex(coord2);
+
+        // Colors for printing blank cards
+        String RESET = "\033[49;39m";
+        String WHITE = "\033[107;31m";
+
+        // Prints all the cards
+        for (int i = 0; i < cards.size(); i++) {
+
+            // Print the row #
+            if (i % cols == 0) {
+                System.out.print("\n" + RESET + "\n");
+                System.out.print(RESET + "\t" + ((i / cols) + 1) + "\t");
+            }
+
+            Card toPrint = cards.get(i);
+
+            // Prints the cards given (flipping them)
+            // If they're a match, remove them from our unmatched set
+            if (i == index1 || i == index2) {
+                System.out.print(toPrint + "\t");
+                if (match) {
+                    unmatched.remove(toPrint);
+                }
+                continue;
+            }
+
+            // Print a blank for unmatched cards, else print the card
+            if (unmatched.contains(toPrint)) {
+                System.out.print(WHITE + " " + RESET + "\t");
+            } else {
+                System.out.print(toPrint + "\t");
+            }
+        }
+        System.out.print("\n\n");
+
+        // If cards are given, pause for 1.5s, then print the board
+        // again, not providing cards this time (so no cards are flipped)
+        if (coord1 != null) {
+            System.out.println(match ? "Match!" : "No match!");
+
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Clears the board
+            System.out.println("\033[H\033[2J");
+            Board.print(null, null);
+        }
     }
 
-    private static String randomEmoji() {
-        return EmojiUtils.getEmoji("&#x1f42d;").getEmoji();
-    }
-
+    /**
+     *  Converts coordinates to indices in our card list.
+     *  @param coord the given coordinate to convert
+     *  @return the index of the card corresponding to the coordinate,
+     *  if null coordinate provided returns -1
+     */
     private static int coordToIndex(String coord) {
-        int letter = coord.charAt(0) - 'A';
-        int num = coord.charAt(1) - '0';
+        if (coord == null) {
+            return -1;
+        }
+        String coordUpper = coord.toUpperCase();
+        int letter = coordUpper.charAt(0) - 'A';
+        int num = coordUpper.charAt(1) - '0';
 
         return letter + cols * (num - 1);
+    }
 
+    /**
+     *  Generates a random emoji from 100 different emoji
+     *  @return an emoji's HTML Entity decimal code
+     */
+    private static String randomEmoji() {
+        Emoji emoji;
+        do {
+            // Choose from 100 different emojis
+            String randEmojiDecimalCode = "&#" + (127789 + new Random().nextInt(100)) + ";";
+
+            // Returns the emoji corresponding to the given HTML Entity decimal code
+            // @source https://github.com/kcthota/emoji4j
+            emoji = EmojiUtils.getEmoji(randEmojiDecimalCode);
+        } while (emoji == null);
+        return emoji.getEmoji();
     }
 }
