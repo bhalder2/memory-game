@@ -4,7 +4,7 @@ class Player implements Comparable<Player> {
 
     /**
      *  The number of non-matching pairs turned over,
-     *  intended as a metric for solo play.
+     *  mostly intended as a metric for solo play.
      */
     private int nonMatches;
 
@@ -45,7 +45,11 @@ class Player implements Comparable<Player> {
         return playerNumber;
     }
 
+    @Override
     public int compareTo(Player o) {
-        return o.getScore() - this.matches;
+        // Compares by matches first, then non-matches (non-matches sorted in reverse
+        // order since lower non-matches is better)
+        int matchDiff = o.getScore() - this.matches;
+        return (matchDiff != 0) ? matchDiff : (this.nonMatches - o.getNonMatches());
     }
 }

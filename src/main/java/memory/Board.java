@@ -1,7 +1,6 @@
 package memory;
 
 import emoji4j.Emoji;
-import emoji4j.EmojiManager;
 import emoji4j.EmojiUtils;
 
 import java.util.ArrayList;
@@ -11,40 +10,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
- *  Maintains the current state of the board using a hash table of
- *  Card objects.
+ *  Maintains the current state of the board using a list of Card objects.
  *  @author Brice Halder
  */
 class Board {
 
-    private static class Card {
-
-        private String symbol;
-
-        Card(String symbol) {
-            this.symbol = symbol;
-        }
-
-        @Override
-        public String toString() {
-            return symbol;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Card card = (Card) o;
-            return Objects.equals(symbol, card.symbol);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(symbol);
-        }
+    static class Dimensions {
+        int rows;
+        int cols;
     }
 
     /** List of all the cards in the game. */
@@ -60,13 +35,12 @@ class Board {
     private static int cols;
 
     /**
-     *  Initializes the board with r rows and c columns.
-     *  @param r the # rows
-     *  @param c the # columns
+     *  Initializes the board with given dimensions.
+     *  @param d the dimensions of the board
      */
-    static void setUp(int r, int c) {
-        rows = r;
-        cols = c;
+    static void setUp(Dimensions d) {
+        rows = d.rows;
+        cols = d.cols;
 
         cards = new ArrayList<>(rows * cols);
         unmatched = new HashSet<>(rows * cols);
@@ -158,6 +132,12 @@ class Board {
      *  @param coord2 the coordinate of the second card
      */
     static void print(String coord1, String coord2) {
+        // Colors for output
+        String RESET = "\033[49;39m";
+        String WHITE = "\033[107;31m";
+        String CLEAR_CONSOLE = "\033[H\033[2J";
+
+        System.out.println(CLEAR_CONSOLE);
         System.out.print("\n\t\t");
 
         // Prints the column headers
@@ -169,10 +149,6 @@ class Board {
         boolean match = Board.isMatch(coord1, coord2); // if the cards are a match
         int index1 = coordToIndex(coord1);
         int index2 = coordToIndex(coord2);
-
-        // Colors for printing blank cards
-        String RESET = "\033[49;39m";
-        String WHITE = "\033[107;31m";
 
         // Prints all the cards
         for (int i = 0; i < cards.size(); i++) {
@@ -216,7 +192,7 @@ class Board {
             }
 
             // Clears the board
-            System.out.println("\033[H\033[2J");
+            System.out.println(CLEAR_CONSOLE);
             Board.print(null, null);
         }
     }
