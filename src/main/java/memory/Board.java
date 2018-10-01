@@ -17,6 +17,10 @@ import java.util.Set;
  */
 class Board {
 
+    /**
+     *  Struct to allow Memory.main method to
+     *  pass in multiple params to Board.java
+     */
     static class Dimensions {
         int rows;
         int cols;

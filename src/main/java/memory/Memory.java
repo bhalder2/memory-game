@@ -1,9 +1,9 @@
 package memory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.InputMismatchException;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 
 /**
@@ -17,6 +17,8 @@ public class Memory {
      *  @param args not used
      */
     public static void main(String[] args) {
+        // Clear the console
+        System.out.print("\033[H\033[2J");
 
         // User inputs # of players
         int numPlayers = getNumPlayers();
@@ -77,14 +79,17 @@ public class Memory {
             }
         }
 
-        // Build a max-heap of the players' scores
-        PriorityQueue<Player> scores = new PriorityQueue<>(players);
+//        PriorityQueue<Player> scores = new PriorityQueue<>(players);
+        // can use priority queue if we wanted to maintain state & ordering of players
+        // but in this case, the game is finished so we can sort the original list
+
+        // Sort players list according to their score
+        Collections.sort(players);
 
         System.out.print("\nSCORES\n------------\n");
 
         // Print each of the players' scores in descending order of their # of matches
-        while (!scores.isEmpty()) {
-            Player p = scores.poll();
+        for (Player p : players) {
             System.out.println("Player " + p.getPlayerNumber() + "\t\tMatches:\t" + p.getScore()
                     + "\t\tNon-matches:\t" + p.getNonMatches());
         }
